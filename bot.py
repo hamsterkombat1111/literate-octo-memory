@@ -21,8 +21,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # Настройки
-BOT_TOKEN = "8285433199:AAHaVXqIF7NZIK3V62kgbGeVwCs5A7Q_y2U"
-ADMIN_ID = 7328238543
+BOT_TOKEN = os.getenv('BOT_TOKEN', "8285433199:AAHaVXqIF7NZIK3V62kgbGeVwCs5A7Q_y2U")
+ADMIN_ID = int(os.getenv('ADMIN_ID', "7328238543"))
 VIP_PRICE = "0 рублей"
 
 # Инициализация
@@ -37,7 +37,6 @@ class Database:
     
     def get_connection(self):
         try:
-            # Для Render.com
             database_url = os.getenv('DATABASE_URL')
             
             if database_url:
@@ -215,7 +214,17 @@ for i in range(max_retries):
             time.sleep(retry_delay)
         else:
             logger.error("❌ Не удалось подключиться к PostgreSQL")
-            raise
+            # Продолжаем работу без базы для отладки
+            class DummyDB:
+                def get_user(self, user_id): return None
+                def create_user(self, user_id): return None
+                def update_user(self, user_id, **kwargs): pass
+                def is_admin(self, user_id): return user_id == ADMIN_ID
+                def get_all_users(self): return []
+                def get_stats(self): return {'total_users': 0, 'vip_users': 0, 'total_requests': 0, 'total_images': 0, 'model_stats': []}
+                def add_test_model(self, model_name): pass
+                def get_test_models(self): return []
+            db = DummyDB()
 
 # Класс для управления пользователями
 class UserManager:
@@ -423,8 +432,8 @@ def start_command(message):
         "⭐ VIP пользователи:\n"
         "• GPT-4 модель\n• 1000 запросов в день\n• 20 изображений в день\n• Приоритетная очередь\n\n"
         "Ваши текущие настройки:\n"
-        f"• 🖼️ Модель изображений: {user['image_model']}\n"
-        f"• 📝 Модель текста: {user['text_model']}\n\n"
+        f"• 🖼️ Модель изображений: {user['image_model'] if user else 'flux'}\n"
+        f"• 📝 Модель текста: {user['text_model'] if user else 'deepseek-v3'}\n\n"
         "Настройки индивидуальны для каждого пользователя!\n\n"
         "Нажмите '🔄 Новая сессия' чтобы начать!\n\n"
         "Данный бот разработан @Arkadarootfurry\n\n"
@@ -434,7 +443,7 @@ def start_command(message):
     if db.is_admin(message.from_user.id):
         bot.send_message(message.chat.id, welcome_text, reply_markup=get_admin_keyboard())
     else:
-        bot.send_message(message.chat.id, welcome_text, reply_markup=get_main_keyboard(user['is_vip']))
+        bot.send_message(message.chat.id, welcome_text, reply_markup=get_main_keyboard(user['is_vip'] if user else False))
 
 @bot.message_handler(func=lambda message: message.text == "👨‍💻 Админ панель")
 def admin_panel_command(message):
@@ -464,10 +473,13 @@ def admin_stats_command(message):
 
 @bot.message_handler(func=lambda message: db.is_admin(message.from_user.id) and message.text == "🔄 Сбросить лимиты")
 def admin_reset_limits_command(message):
-    with db.connection.cursor() as cursor:
-        cursor.execute('UPDATE users SET requests_today = 0, requests_hour = 0, image_requests_today = 0')
-        db.connection.commit()
-    bot.send_message(message.chat.id, "✅ Лимиты всех пользователей сброшены!")
+    try:
+        with db.connection.cursor() as cursor:
+            cursor.execute('UPDATE users SET requests_today = 0, requests_hour = 0, image_requests_today = 0')
+            db.connection.commit()
+        bot.send_message(message.chat.id, "✅ Лимиты всех пользователей сброшены!")
+    except Exception as e:
+        bot.send_message(message.chat.id, f"❌ Ошибка сброса лимитов: {e}")
 
 @bot.message_handler(func=lambda message: db.is_admin(message.from_user.id) and message.text == "⭐ Выдать VIP")
 def admin_grant_vip_command(message):
@@ -514,7 +526,6 @@ def add_model_step(message):
         # Тестируем модель сразу
         bot.send_message(message.chat.id, f"🧪 Тестирую модель '{model_name}'...")
         try:
-            # Пробуем сделать простой запрос к модели
             test_response = g4f.ChatCompletion.create(
                 model=model_name,
                 messages=[{"role": "user", "content": "Привет! Ответь коротко: 'Тест пройден'"}],
@@ -549,30 +560,36 @@ def admin_restart_command(message):
 @bot.message_handler(func=lambda message: db.is_admin(message.from_user.id) and message.text == "🚪 Выйти из админки")
 def admin_exit_command(message):
     user = UserManager.get_or_create_user(message.from_user.id)
-    bot.send_message(message.chat.id, "👋 Вы вышли из админ-панели", reply_markup=get_main_keyboard(user['is_vip']))
+    bot.send_message(message.chat.id, "👋 Вы вышли из админ-панели", reply_markup=get_main_keyboard(user['is_vip'] if user else False))
 
 # Остальные команды
 @bot.message_handler(func=lambda message: message.text == "📊 Мой профиль")
 def profile_command(message):
     user = UserManager.get_or_create_user(message.from_user.id)
     
-    status = "⭐ VIP" if user['is_vip'] else "👤 Обычный"
-    model = user['text_model']
-    text_limits = f"1000/день" if user['is_vip'] else f"100/час, 500/день"
-    image_limits = f"20/день" if user['is_vip'] else f"5/день"
+    status = "⭐ VIP" if user and user['is_vip'] else "👤 Обычный"
+    model = user['text_model'] if user else 'deepseek-v3'
+    text_limits = f"1000/день" if user and user['is_vip'] else f"100/час, 500/день"
+    image_limits = f"20/день" if user and user['is_vip'] else f"5/день"
+    
+    requests_today = user['requests_today'] if user else 0
+    image_requests = user['image_requests_today'] if user else 0
+    requests_hour = user['requests_hour'] if user else 0
+    session_active = user['session_active'] if user else False
+    image_model = user['image_model'] if user else 'flux'
     
     profile_text = (
         f"👤 Ваш профиль:\n\n"
         f"🆔 ID: {message.from_user.id}\n"
         f"🎖️ Статус: {status}\n"
         f"🤖 Модель текста: {model}\n"
-        f"🎨 Модель изображений: {user['image_model']}\n"
+        f"🎨 Модель изображений: {image_model}\n"
         f"📊 Лимиты текста: {text_limits}\n"
         f"🎨 Лимиты изображений: {image_limits}\n"
-        f"📅 За сегодня: {user['requests_today']}\n"
-        f"🖼️ Изображений сегодня: {user['image_requests_today']}\n"
-        f"⏰ За час: {user['requests_hour']}\n"
-        f"💬 Сессия: {'Активна' if user['session_active'] else 'Неактивна'}\n\n"
+        f"📅 За сегодня: {requests_today}\n"
+        f"🖼️ Изображений сегодня: {image_requests}\n"
+        f"⏰ За час: {requests_hour}\n"
+        f"💬 Сессия: {'Активна' if session_active else 'Неактивна'}\n\n"
         f"💾 Индивидуальные настройки сохранены"
     )
     
@@ -589,7 +606,7 @@ def image_models_command(message):
 @bot.message_handler(func=lambda message: message.text == "📝 Модель текста")
 def text_models_command(message):
     user = UserManager.get_or_create_user(message.from_user.id)
-    bot.send_message(message.chat.id, "📝 Выберите модель для текстовых запросов:", reply_markup=get_text_models_keyboard(user['is_vip']))
+    bot.send_message(message.chat.id, "📝 Выберите модель для текстовых запросов:", reply_markup=get_text_models_keyboard(user['is_vip'] if user else False))
 
 @bot.message_handler(func=lambda message: message.text in ["🖼️ FLUX", "🖼️ GPT-IMAGE"])
 def set_image_model_command(message):
@@ -597,29 +614,29 @@ def set_image_model_command(message):
     
     if message.text == "🖼️ FLUX":
         db.update_user(message.from_user.id, image_model='flux')
-        bot.send_message(message.chat.id, "✅ Модель изображений установлена: FLUX", reply_markup=get_main_keyboard(user['is_vip']))
+        bot.send_message(message.chat.id, "✅ Модель изображений установлена: FLUX", reply_markup=get_main_keyboard(user['is_vip'] if user else False))
     elif message.text == "🖼️ GPT-IMAGE":
         db.update_user(message.from_user.id, image_model='gpt-image')
-        bot.send_message(message.chat.id, "✅ Модель изображений установлена: GPT-IMAGE", reply_markup=get_main_keyboard(user['is_vip']))
+        bot.send_message(message.chat.id, "✅ Модель изображений установлена: GPT-IMAGE", reply_markup=get_main_keyboard(user['is_vip'] if user else False))
 
 @bot.message_handler(func=lambda message: message.text in ["📝 GPT-4 (VIP)", "📝 DEEPSEEK-V3"])
 def set_text_model_command(message):
     user = UserManager.get_or_create_user(message.from_user.id)
     
     if message.text == "📝 GPT-4 (VIP)":
-        if user['is_vip']:
+        if user and user['is_vip']:
             db.update_user(message.from_user.id, text_model='gpt-4')
             bot.send_message(message.chat.id, "✅ Модель текста установлена: GPT-4", reply_markup=get_main_keyboard(user['is_vip']))
         else:
-            bot.send_message(message.chat.id, "❌ GPT-4 доступен только VIP пользователям!", reply_markup=get_main_keyboard(user['is_vip']))
+            bot.send_message(message.chat.id, "❌ GPT-4 доступен только VIP пользователям!", reply_markup=get_main_keyboard(user['is_vip'] if user else False))
     elif message.text == "📝 DEEPSEEK-V3":
         db.update_user(message.from_user.id, text_model='deepseek-v3')
-        bot.send_message(message.chat.id, "✅ Модель текста установлена: DEEPSEEK-V3", reply_markup=get_main_keyboard(user['is_vip']))
+        bot.send_message(message.chat.id, "✅ Модель текста установлена: DEEPSEEK-V3", reply_markup=get_main_keyboard(user['is_vip'] if user else False))
 
 @bot.message_handler(func=lambda message: message.text == "🔙 Назад")
 def back_command(message):
     user = UserManager.get_or_create_user(message.from_user.id)
-    bot.send_message(message.chat.id, "🔙 Возврат в главное меню", reply_markup=get_main_keyboard(user['is_vip']))
+    bot.send_message(message.chat.id, "🔙 Возврат в главное меню", reply_markup=get_main_keyboard(user['is_vip'] if user else False))
 
 # ИСПРАВЛЕННАЯ КНОПКА СОЗДАНИЯ ИЗОБРАЖЕНИЯ
 @bot.message_handler(func=lambda message: message.text == "🖼️ Создать изображение")
@@ -631,7 +648,6 @@ def create_image_command(message):
         bot.send_message(message.chat.id, f"❌ {error_msg}")
         return
     
-    # Используем безопасное обновление
     db.update_user(message.from_user.id, waiting_for_image=True)
     
     msg = bot.send_message(message.chat.id, 
@@ -643,7 +659,7 @@ def process_image_generation(message):
     if message.text == "❌ Отмена генерации":
         db.update_user(message.from_user.id, waiting_for_image=False)
         user = UserManager.get_or_create_user(message.from_user.id)
-        bot.send_message(message.chat.id, "❌ Генерация отменена", reply_markup=get_main_keyboard(user['is_vip']))
+        bot.send_message(message.chat.id, "❌ Генерация отменена", reply_markup=get_main_keyboard(user['is_vip'] if user else False))
         return
     
     prompt = message.text.strip()
@@ -682,7 +698,7 @@ def process_image_generation(message):
     
     finally:
         user = UserManager.get_or_create_user(message.from_user.id)
-        bot.send_message(message.chat.id, "Готово! Что дальше?", reply_markup=get_main_keyboard(user['is_vip']))
+        bot.send_message(message.chat.id, "Готово! Что дальше?", reply_markup=get_main_keyboard(user['is_vip'] if user else False))
 
 @bot.message_handler(func=lambda message: message.text == "⭐ Купить VIP")
 def buy_vip_command(message):
@@ -703,7 +719,7 @@ def buy_vip_command(message):
 def vip_status_command(message):
     user = UserManager.get_or_create_user(message.from_user.id)
     
-    if user['is_vip']:
+    if user and user['is_vip']:
         vip_text = (
             "🎉 У вас активен VIP статус!\n\n"
             "Ваши преимущества:\n"
@@ -739,11 +755,11 @@ def new_session_command(message):
                   }]))
     
     bot.send_message(message.chat.id, 
-                    f"💬 Сессия начата! Ваша модель: {user['text_model']}\nЗадавайте ваш вопрос...",
+                    f"💬 Сессия начата! Ваша модель: {user['text_model'] if user else 'deepseek-v3'}\nЗадавайте ваш вопрос...",
                     reply_markup=get_session_keyboard())
 
 # ИСПРАВЛЕННЫЙ ОБРАБОТЧИК ЗАВЕРШЕНИИ СЕССИИ
-@bot.message_handler(func=lambda message: message.text == "❌ Завершить сессия")
+@bot.message_handler(func=lambda message: message.text == "❌ Завершить сессию")
 def end_session_command(message):
     user = UserManager.get_or_create_user(message.from_user.id)
     db.update_user(message.from_user.id, 
@@ -752,7 +768,7 @@ def end_session_command(message):
     
     bot.send_message(message.chat.id, 
                     "✅ Сессия завершена! История очищена.",
-                    reply_markup=get_main_keyboard(user['is_vip']))
+                    reply_markup=get_main_keyboard(user['is_vip'] if user else False))
 
 @bot.message_handler(func=lambda message: message.text == "ℹ️ Помощь")
 def help_command(message):
@@ -790,7 +806,7 @@ def handle_message(message):
         return
     
     # Проверка сессии
-    if not user['session_active']:
+    if not user or not user['session_active']:
         bot.send_message(message.chat.id, "❌ Сначала начните сессию!")
         return
     
