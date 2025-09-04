@@ -176,6 +176,7 @@ function showPage(pageId){
 }
 
 // перехватываем клики по меню и кнопкам на главной
+/*
 navItems.forEach(a=>{
   a.addEventListener('click', e=>{
     const target = a.dataset.page;
@@ -184,6 +185,7 @@ navItems.forEach(a=>{
     showPage(target);
   });
 });
+*/
 
 // стартовая секция — из hash либо home
 const start = location.hash.replace('#','') || 'home';
