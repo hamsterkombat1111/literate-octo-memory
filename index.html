@@ -1,1 +1,227 @@
-<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=/ru/"><script>location.replace('"\ru\index"');</script>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrankVzlom Team</title>
+  <link rel="stylesheet" href="../files/style.css">
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <header class="elev-1">
+    <div class="logo">PrankVzlom</div><button class="nav-toggle" aria-label="Menu">☰</button>
+    <nav>
+      <a href="#home"     class="nav-link" data-page="home">Главная</a>
+      <a href="#soft"     class="nav-link" data-page="soft">Софт</a>
+      <a href="#admins"   class="nav-link" data-page="admins">Администрация</a>
+      <a href="#faq"      class="nav-link" data-page="faq">FAQ</a>
+      <a href="#contacts" class="nav-link" data-page="contacts">Контакты</a>
+      <a href="#about"    class="nav-link" data-page="about">О нас</a>
+    
+      <div class="lang-switcher" aria-label="Language"><a href="/ru/" class="is-active">RU</a><a href="/ua/">UA</a><a href="/en/">EN</a></div>
+    </nav>
+  </header>
+
+<!-- Главная -->
+<section id="home" class="hero fade-in page active">
+  <div class="kicker">официальная страница</div>
+  <h1 class="display">PrankVzlom Team</h1>
+  <p class="lead">Каталог программ, новости и команда — в одном месте</p>
+
+  <div class="pseudo-pages" style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+    <a href="#soft"     class="btn btn-cta"  data-page="soft">Программы</a>
+    <a href="#admins"   class="btn btn-dark" data-page="admins">Администрация</a>
+    <a href="#faq"      class="btn btn-dark" data-page="faq">FAQ</a>
+    <a href="#contacts" class="btn btn-dark" data-page="contacts">Контакты</a>
+    <a href="#about"    class="btn btn-dark" data-page="about">О нас</a>
+  </div>
+
+  <!-- Блок "О нас" прямо на главной -->
+  <div class="about-box" style="margin-top:60px;max-width:800px;margin-inline:auto;text-align:center">
+    <h2>О нас</h2>
+    <p>
+      PrankVZ — команда специалистов, занимающихся исследованием и проверкой безопасности цифровых устройств и онлайн-сервисов.
+      Мы анализируем уязвимости, тестируем устойчивость к внешним воздействиям и разрабатываем креативные методы защиты,
+      при этом строго соблюдая все международные законы и правила кибербезопасности.
+    </p>
+  </div>
+</section>
+
+  <!-- Софт -->
+  <section id="soft" class="fade-in page">
+    <div class="section-head">
+      <div class="kicker">раздел</div>
+      <h2 class="title"><span>Программы (ВЫ НЕ СМОЖЕТЕ СКАЧАТЬ! РАЗДЕЛ НЕ РАБОТАЕТ!)</span></h2>
+      <p class="subtle">Выберите категорию, затем программу — откроется карточка с описанием и действиями</p>
+    </div>
+
+    <div class="categories wrap">
+      <button class="chip is-active" data-category="network"><span class="chip-dot"></span> Сетевые</button>
+      <button class="chip" data-category="media"><span class="chip-dot"></span> Медиа</button>
+      <button class="chip" data-category="system"><span class="chip-dot"></span> Системные</button>
+	  <button class="chip" data-category="joke"><span class="chip-dot"></span> РоФл</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search"><input id="q" type="text" placeholder="Поиск по названию"></div>
+      <div class="view-toggle">
+        <button class="seg on" data-view="grid">Сетка</button>
+        <button class="seg" data-view="list">Список</button>
+      </div>
+    </div>
+
+    <div class="programs grid elev-1"></div>
+  </section>
+
+  <!-- Администрация -->
+  <section id="admins" class="fade-in admin-section page">
+    <div class="section-head">
+      <div class="kicker">люди</div>
+      <h2 class="title"><span>Администрация</span></h2>
+      <p class="subtle"><span>Состав команды и роли</span></p>
+    </div>
+
+    <div class="admin-group">
+      <div class="role-title"><span>Создатель</span></div>
+      <div class="admin-list">
+        <div class="admin-card"><div class="admin-name">Православный Бес🙏🙏👹🕯️</div></div>
+      </div>
+    </div>
+
+    <div class="admin-group">
+      <div class="role-title"><span>Главные администраторы</span></div>
+      <div class="admin-list">
+        <div class="admin-card"><div class="admin-name">Аркадикс😞 [root]</div></div>
+        <div class="admin-card"><div class="admin-name">sakanza</div></div>
+      </div>
+    </div>
+
+    <div class="admin-group">
+      <div class="role-title"><span>Администраторы</span></div>
+      <div class="admin-list">
+        <div class="admin-card"><div class="admin-name">obfuscatedbro</div></div>
+        <div class="admin-card"><div class="admin-name">жук🪲🪲🪲 [PRNKVZ]</div></div>
+        <div class="admin-card"><div class="admin-name">uncamazed</div></div>
+		<div class="admin-card"><div class="admin-name">nocommand</div></div>
+      </div>
+    </div>
+
+    <div class="admin-group">
+      <div class="role-title"><span>Младшие администраторы</span></div>
+      <div class="admin-list">
+        <div class="admin-card"><div class="admin-name">Shikataganai</div></div>
+        <div class="admin-card"><div class="admin-name">@norton_318</div></div>
+        <div class="admin-card"><div class="admin-name">Ебля в жопу</div></div>
+      </div>
+    </div>
+	
+	<div class="admin-group">
+      <div class="role-title"><span>Глав. модератор</span></div>
+      <div class="admin-list">
+        <div class="admin-card"><div class="admin-name">+1[🇺🇸]zxcel3estial #awtysm #nvm</div></div>
+      </div>
+    </div>
+	
+    <div class="admin-group">
+      <div class="role-title"><span>Зам глав. модератора</span></div>
+      <div class="admin-list">
+        <div class="admin-card"><div class="admin-name">Ὑπερβορεία</div></div>
+		<div class="admin-card"><div class="admin-name">@Ximi13p</div></div>
+      </div>
+    </div>
+
+    <div class="admin-group">
+      <div class="role-title"><span>Модераторы</span></div>
+      <div class="admin-list">
+        <div class="admin-card"><div class="admin-name">Их сука нет:(</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="fade-in page">
+    <div class="section-head">
+      <div class="kicker">помощь</div>
+      <h2 class="title"><span>FAQ</span></h2>
+    </div>
+    <div class="faq">
+      <details class="elev-1">
+        <summary>Раздел еще не готов</summary>
+        <div class="muted">Зайдите позже:)</div>
+      </details>
+    </div>
+  </section>
+
+  <!-- Контакты -->
+  <section id="contacts" class="fade-in page">
+    <div class="section-head">
+      <div class="kicker">связь</div>
+      <h2 class="title"><span>Контакты</span></h2>
+    </div>
+    <ul class="links">
+      <li><a href="#" class="link">Telegram</a></li>
+      <li><a href="#" class="link">Discord</a></li>
+      <li><a href="#" class="link">TikTok</a></li>
+    </ul>
+  </section>
+
+  <!-- О нас -->
+  <section id="about" class="fade-in page">
+    <div class="section-head">
+      <div class="kicker">инфо</div>
+      <h2 class="title"><span>О нас</span></h2>
+    </div>
+    <p class="lead">
+      PrankVZ — команда специалистов, занимающихся исследованием и проверкой безопасности цифровых устройств и онлайн-сервисов;
+      мы анализируем уязвимости, тестируем устойчивость к внешним воздействиям и разрабатываем креативные методы защиты,
+      при этом строго соблюдая все международные законы и правила кибербезопасности.
+    </p>
+  </section>
+
+  <footer>
+    <p class="micro">© 2025 PrankVzlom</p>
+  </footer>
+
+  <!-- Модалка -->
+  <div id="modal" class="modal">
+    <div class="modal-content elev-2">
+      <button class="close" aria-label="Закрыть">&times;</button>
+	  <div class="modal-kicker label">карточка программы</div>
+	  <h3 id="modal-title" class="modal-title"></h3>
+
+	  <!-- строка с инфо + версия -->
+	  <div class="modal-meta-row">
+		<p id="modal-info" class="muted"></p>
+		<button class="version-pill" id="version-pill" aria-expanded="false">—</button>
+	  </div>
+
+	  <!-- dropdown версий -->
+	  <div id="version-dd" class="version-dropdown elev-2" hidden></div>
+
+	  <div id="tags" class="tags"></div>
+
+	  <div class="modal-actions">
+		<a href="#" class="btn btn-green" id="download-btn">Скачать</a>
+		<a href="#" class="btn btn-blue" id="more-btn" target="_blank" rel="noopener">Подробнее</a>
+		<a href="#" class="btn btn-dark" id="vt-btn" target="_blank" rel="noopener">VirusTotal</a>
+		<button class="btn btn-dark" id="close-btn">Закрыть</button>
+	  </div>
+
+	  <!-- Лист вариантов скачивания -->
+	  <div id="dl-sheet" class="sheet" hidden>
+		<div class="sheet-card elev-2">
+		  <h4 class="sheet-title">Скачать</h4>
+		  <div class="sheet-actions">
+			<a id="dl-direct" class="btn btn-cta" target="_blank" rel="noopener">Прямая загрузка</a>
+			<a id="dl-mega" class="btn btn-blue" target="_blank" rel="noopener">MEGA</a>
+			<a id="dl-gd" class="btn btn-dark" target="_blank" rel="noopener">Google Drive</a>
+		  </div>
+		  <button id="dl-close" class="btn btn-dark">Закрыть</button>
+		</div>
+	  </div>
+  </div>
+
+  <script src="../files/script.js"></script>
+</body>
+</html>
