@@ -1,0 +1,1 @@
+Place custom admin avatar images here and reference them via AVATAR_URLS mapping in files/script.js
